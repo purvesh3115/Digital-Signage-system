@@ -1,0 +1,82 @@
+{
+  "tokens": [
+    {
+      "id": "d5677b36-be01-4286-ba8f-3f0d7aeb3dda",
+      "token": "b419c3f1c5e2401d86453cb6db58cd80",
+      "device_id": "51dba7cf-c88b-423d-94d0-660081d265da",
+      "generated_at": "2026-02-28T16:10:56.072306+00:00",
+      "expires_at": "2026-02-28T21:41:00+00:00",
+      "is_used": false
+    },
+    {
+      "id": "3d414aa2-d419-40a9-b95b-e062667a8903",
+      "token": "714ad31daf8443a18c1dec9b920d806f",
+      "device_id": "51dba7cf-c88b-423d-94d0-660081d265da",
+      "generated_at": "2026-02-28T16:11:28.42059+00:00",
+      "expires_at": "2026-02-28T21:43:00+00:00",
+      "is_used": false
+    },
+    {
+      "id": "efee83bd-0e11-4cb0-991d-d5e444adc6b2",
+      "token": "01cdb228203448ec8f974290941ae629",
+      "device_id": "51dba7cf-c88b-423d-94d0-660081d265da",
+      "generated_at": "2026-02-28T16:11:37.36944+00:00",
+      "expires_at": "2026-02-28T21:43:00+00:00",
+      "is_used": false
+    },
+    {
+      "id": "5172c538-fd42-43c6-9b18-bd78141dff00",
+      "token": "302dbd7472fc4abaaacef46b4118e726",
+      "device_id": "51dba7cf-c88b-423d-94d0-660081d265da",
+      "generated_at": "2026-02-28T16:11:54.150481+00:00",
+      "expires_at": "2026-02-28T21:43:00+00:00",
+      "is_used": false
+    },
+    {
+      "id": "ad79bb88-b376-4454-8a8e-cfe0012853d2",
+      "token": "ef8fef8cbf0947c4b3cf0aefb0de2d4e",
+      "device_id": "51dba7cf-c88b-423d-94d0-660081d265da",
+      "generated_at": "2026-02-28T16:12:38.430029+00:00",
+      "expires_at": "2026-02-28T21:43:00+00:00",
+      "is_used": false
+    },
+    {
+      "id": "31863aee-5971-4139-bd86-5e4a69d7be28",
+      "token": "1321a6ccef7f4cd4881f6fe76745f012",
+      "device_id": "51dba7cf-c88b-423d-94d0-660081d265da",
+      "generated_at": "2026-02-28T16:12:40.846576+00:00",
+      "expires_at": "2026-02-28T21:43:00+00:00",
+      "is_used": false
+    },
+    {
+      "id": "15a62044-92dc-4a9d-aae4-2b26e0d02543",
+      "token": "79a8589f19e649f0b475e21528cc1832",
+      "device_id": "51dba7cf-c88b-423d-94d0-660081d265da",
+      "generated_at": "2026-02-28T16:22:39.458553+00:00",
+      "expires_at": "2026-02-28T21:53:00+00:00",
+      "is_used": false
+    }
+  ],
+  "schedules": [
+    {
+      "id": "7aedea9c-b323-48a8-a952-b82c8c4134fe",
+      "media_id": "08fc9ecb-8390-4603-878f-10a04bf0b3ce",
+      "target_type": "device",
+      "target_id": "51dba7cf-c88b-423d-94d0-660081d265da",
+      "start_time": "2026-02-28T21:52:00+00:00",
+      "end_time": "2026-02-28T21:53:00+00:00",
+      "active": true
+    }
+  ],
+  "devices": [
+    {
+      "id": "51dba7cf-c88b-423d-94d0-660081d265da",
+      "name": "Test Device 115",
+      "location": "Test Lab",
+      "ip_address": "127.0.0.1",
+      "group_name": null,
+      "status": "online",
+      "last_ping": "2026-02-28T16:10:14.311003+00:00"
+    }
+  ]
+}

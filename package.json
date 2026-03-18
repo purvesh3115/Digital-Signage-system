@@ -1,0 +1,9 @@
+{
+    "name": "digital-signage-root",
+    "version": "1.0.0",
+    "scripts": {
+        "server": "cd server && node server.js",
+        "client": "cd client && npm run dev",
+        "dev": "echo \"Please run 'npm run server' and 'npm run client' in separate terminals.\""
+    }
+}
