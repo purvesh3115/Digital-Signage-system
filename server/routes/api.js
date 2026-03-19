@@ -53,9 +53,11 @@ router.post('/devices', async (req, res) => {
         obj.group_name = obj.groupName;
         res.json(obj);
     } catch (err) {
+        console.error('❌ Add device error:', err.message, err.code || '');
         res.status(500).json({ error: err.message });
     }
 });
+
 
 // List Devices
 router.get('/devices', async (req, res) => {
