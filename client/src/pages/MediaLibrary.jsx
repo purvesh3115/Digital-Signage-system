@@ -44,16 +44,17 @@ const MediaLibrary = () => {
         try {
             const formData = new FormData();
             formData.append('file', file);
-            
-            await apiClient.post('/upload', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+
+            // Do NOT set Content-Type manually — axios will automatically set
+            // 'multipart/form-data' WITH the correct boundary when given FormData.
+            await apiClient.post('/upload', formData);
 
             await fetchMedia();
             setUploading(false);
         } catch (err) {
-            console.error(err);
-            alert(err.message || 'Upload failed');
+            console.error('Upload error:', err);
+            const msg = err?.response?.data?.error || err.message || 'Upload failed';
+            alert('Upload failed: ' + msg);
             setUploading(false);
         }
     };
@@ -62,7 +63,7 @@ const MediaLibrary = () => {
         if (!window.confirm(`Are you sure you want to delete "${item.filename}"? This will also remove it from storage.`)) return;
 
         try {
-            await apiClient.delete('/media/' + item._id);
+            await apiClient.delete('/media/' + item.id);
             await fetchMedia();
         } catch (err) {
             console.error(err);
@@ -73,7 +74,7 @@ const MediaLibrary = () => {
     const handleGenerateLink = async () => {
         try {
             const response = await apiClient.post('/generate-share-link', {
-                mediaId: selectedShareMedia._id,
+                mediaId: selectedShareMedia.id,
                 maxDevices: parseInt(maxDevices)
             });
 
@@ -126,7 +127,7 @@ const MediaLibrary = () => {
             {/* Grid */}
             <div className="grid grid-cols-4 gap-6">
                 {filteredMedia.map(item => (
-                    <div key={item._id} className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                    <div key={item.id} className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                         <div style={{ position: 'relative', height: '180px', backgroundColor: '#000' }}>
                             {item.type === 'image' ? (
                                 <img src={`http://localhost:5000/uploads/${item.filename}`} alt={item.filename} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />

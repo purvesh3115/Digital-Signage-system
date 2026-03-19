@@ -40,14 +40,18 @@ router.post('/devices', async (req, res) => {
             name: req.body.name,
             location: req.body.location,
             ip_address: req.body.ip_address || '',
-            groupName: req.body.groupName || '',
+            // Accept both group_name (from client form) and groupName
+            groupName: req.body.groupName || req.body.group_name || '',
             status: 'offline',
             lastPing: admin.firestore.FieldValue.serverTimestamp(),
             createdAt: admin.firestore.FieldValue.serverTimestamp()
         };
         const ref = await devicesCol.add(data);
         const saved = await ref.get();
-        res.json(docToObj(saved));
+        const obj = docToObj(saved);
+        // Always expose group_name for client compatibility
+        obj.group_name = obj.groupName;
+        res.json(obj);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -57,7 +61,13 @@ router.post('/devices', async (req, res) => {
 router.get('/devices', async (req, res) => {
     try {
         const snapshot = await devicesCol.get();
-        const devices = snapshot.docs.map(docToObj);
+        // Normalize: expose group_name for client and last_ping for heartbeat display
+        const devices = snapshot.docs.map(doc => {
+            const obj = docToObj(doc);
+            obj.group_name = obj.groupName || '';
+            obj.last_ping = obj.lastPing?.toDate ? obj.lastPing.toDate().toISOString() : null;
+            return obj;
+        });
         res.json(devices);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -138,6 +148,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
         const saved = await ref.get();
         res.json(docToObj(saved));
     } catch (err) {
+        console.error('Upload error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -495,4 +506,133 @@ router.post('/settings', async (req, res) => {
     }
 });
 
+// ============================================================
+// --- A/B Testing ---
+// ============================================================
+
+const abTestsCol = db.collection('ab_tests');
+
+// Create A/B Test
+router.post('/ab-tests', async (req, res) => {
+    try {
+        const { name, variantAMediaId, variantBMediaId, targetType, targetId, startTime, endTime } = req.body;
+        if (!name || !variantAMediaId || !variantBMediaId || !targetType || !targetId || !startTime || !endTime) {
+            return res.status(400).json({ error: 'All fields are required.' });
+        }
+
+        const st = new Date(startTime);
+        const et = new Date(endTime);
+        if (et <= st) return res.status(400).json({ error: 'End time must be after start time.' });
+
+        const data = {
+            name,
+            variantAMediaId,
+            variantBMediaId,
+            targetType,
+            targetId,
+            startTime: admin.firestore.Timestamp.fromDate(st),
+            endTime: admin.firestore.Timestamp.fromDate(et),
+            impressionsA: 0,
+            impressionsB: 0,
+            status: 'active',
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        };
+
+        const ref = await abTestsCol.add(data);
+        const saved = await ref.get();
+        res.json(docToObj(saved));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// List A/B Tests (with populated media info)
+router.get('/ab-tests', async (req, res) => {
+    try {
+        const snapshot = await abTestsCol.get();
+        const tests = await Promise.all(snapshot.docs.map(async doc => {
+            const data = docToObj(doc);
+
+            const [mediaADoc, mediaBDoc] = await Promise.all([
+                mediaCol.doc(data.variantAMediaId).get(),
+                mediaCol.doc(data.variantBMediaId).get()
+            ]);
+
+            data.variantAMedia = mediaADoc.exists ? docToObj(mediaADoc) : null;
+            data.variantBMedia = mediaBDoc.exists ? docToObj(mediaBDoc) : null;
+
+            // Auto-update status based on time
+            const now = new Date();
+            const endTime = data.endTime?.toDate ? data.endTime.toDate() : new Date(data.endTime?.seconds * 1000);
+            if (now > endTime && data.status === 'active') {
+                await abTestsCol.doc(doc.id).update({ status: 'completed' });
+                data.status = 'completed';
+            }
+
+            return data;
+        }));
+
+        // Sort newest first
+        tests.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        res.json(tests);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get single A/B Test
+router.get('/ab-tests/:id', async (req, res) => {
+    try {
+        const doc = await abTestsCol.doc(req.params.id).get();
+        if (!doc.exists) return res.status(404).json({ error: 'Test not found' });
+
+        const data = docToObj(doc);
+        const [mediaADoc, mediaBDoc] = await Promise.all([
+            mediaCol.doc(data.variantAMediaId).get(),
+            mediaCol.doc(data.variantBMediaId).get()
+        ]);
+        data.variantAMedia = mediaADoc.exists ? docToObj(mediaADoc) : null;
+        data.variantBMedia = mediaBDoc.exists ? docToObj(mediaBDoc) : null;
+
+        res.json(data);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Record Impression (variant = 'A' or 'B')
+router.post('/ab-tests/:id/impression', async (req, res) => {
+    try {
+        const { variant } = req.body;
+        if (variant !== 'A' && variant !== 'B') {
+            return res.status(400).json({ error: 'variant must be "A" or "B"' });
+        }
+
+        const ref = abTestsCol.doc(req.params.id);
+        const doc = await ref.get();
+        if (!doc.exists) return res.status(404).json({ error: 'Test not found' });
+
+        const field = variant === 'A' ? 'impressionsA' : 'impressionsB';
+        await ref.update({ [field]: admin.firestore.FieldValue.increment(1) });
+
+        const updated = await ref.get();
+        res.json(docToObj(updated));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Delete A/B Test
+router.delete('/ab-tests/:id', async (req, res) => {
+    try {
+        const doc = await abTestsCol.doc(req.params.id).get();
+        if (!doc.exists) return res.status(404).json({ error: 'Test not found' });
+        await abTestsCol.doc(req.params.id).delete();
+        res.json({ message: 'A/B test deleted' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;
+

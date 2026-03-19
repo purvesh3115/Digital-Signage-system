@@ -116,10 +116,10 @@ const Schedules = () => {
                         <div className="grid grid-cols-4 gap-4">
                             {media.map(item => (
                                 <div
-                                    key={item._id}
-                                    onClick={() => setSelectedMedia(item._id)}
+                                    key={item.id}
+                                    onClick={() => setSelectedMedia(item.id)}
                                     style={{
-                                        border: selectedMedia === item._id ? '2px solid var(--accent-primary)' : '1px solid var(--border-color)',
+                                        border: selectedMedia === item.id ? '2px solid var(--accent-primary)' : '1px solid var(--border-color)',
                                         borderRadius: '8px',
                                         overflow: 'hidden',
                                         cursor: 'pointer',
@@ -132,7 +132,7 @@ const Schedules = () => {
                                         <video src={`http://localhost:5000/uploads/${item.filename}`} style={{ width: '100%', height: '120px', objectFit: 'cover' }} />
                                     )}
                                     <div style={{ padding: '0.5rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.filename}</div>
-                                    {selectedMedia === item._id && (
+                                    {selectedMedia === item.id && (
                                         <div style={{ position: 'absolute', top: 5, right: 5, backgroundColor: 'var(--accent-primary)', borderRadius: '50%', padding: '2px' }}>
                                             <Check size={16} color="white" />
                                         </div>
@@ -174,11 +174,11 @@ const Schedules = () => {
                             <div className="grid grid-cols-3 gap-4">
                                 {devices.map(device => (
                                     <div
-                                        key={device._id}
-                                        onClick={() => setSelectedDevice(device._id)}
+                                        key={device.id}
+                                        onClick={() => setSelectedDevice(device.id)}
                                         style={{
                                             padding: '1rem',
-                                            border: selectedDevice === device._id ? '2px solid var(--accent-primary)' : '1px solid var(--border-color)',
+                                            border: selectedDevice === device.id ? '2px solid var(--accent-primary)' : '1px solid var(--border-color)',
                                             borderRadius: '8px',
                                             cursor: 'pointer',
                                             display: 'flex',
@@ -291,7 +291,7 @@ const Schedules = () => {
                     </thead>
                     <tbody>
                         {schedules.map(sch => (
-                            <tr key={sch._id} style={{ borderBottom: '1px solid var(--divider-color)' }}>
+                            <tr key={sch.id} style={{ borderBottom: '1px solid var(--divider-color)' }}>
                                 <td style={{ padding: '1rem', fontWeight: 500 }}>{sch.mediaId?.filename || 'Unknown Media'}</td>
                                 <td style={{ padding: '1rem' }}>{sch.targetId}</td>
                                 <td style={{ padding: '1rem' }}>
@@ -312,7 +312,7 @@ const Schedules = () => {
                                                 alert('Please select a device in Step 2 first to generate a link for this group schedule.');
                                                 return;
                                             }
-                                            generateLink(sch.targetType === 'device' ? sch.targetId : selectedDevice, sch._id);
+                                            generateLink(sch.targetType === 'device' ? sch.targetId : selectedDevice, sch.id);
                                         }}
                                     >
                                         <LinkIcon size={14} style={{ marginRight: '4px' }} /> Copy Link
@@ -320,7 +320,7 @@ const Schedules = () => {
                                     <button
                                         className="btn btn-secondary"
                                         style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', color: 'var(--status-offline)' }}
-                                        onClick={() => handleDeleteSchedule(sch._id)}
+                                        onClick={() => handleDeleteSchedule(sch.id)}
                                         title="Delete Schedule"
                                     >
                                         <Trash2 size={14} />

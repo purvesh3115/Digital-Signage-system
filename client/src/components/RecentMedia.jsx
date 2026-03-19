@@ -25,7 +25,7 @@ const RecentMedia = ({ items }) => {
                 </thead>
                 <tbody>
                     {mediaItems.map(item => (
-                        <tr key={item._id} style={{ borderBottom: '1px solid var(--divider-color)' }}>
+                        <tr key={item.id} style={{ borderBottom: '1px solid var(--divider-color)' }}>
                             <td style={{ padding: '1rem 0' }}>
                                 <div style={{
                                     width: '48px',
