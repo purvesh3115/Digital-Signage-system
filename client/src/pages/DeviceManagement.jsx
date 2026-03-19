@@ -31,13 +31,20 @@ const DeviceManagement = () => {
     const handleAddDevice = async (e) => {
         e.preventDefault();
         try {
-            await apiClient.post('/devices', newDevice);
+            await apiClient.post('/devices', {
+                name: newDevice.name,
+                location: newDevice.location,
+                ip_address: newDevice.ip_address,
+                groupName: newDevice.group_name  // send as groupName so server reads it correctly
+            });
             setNewDevice({ name: '', location: '', ip_address: '', group_name: '' });
             setShowAddModal(false);
             fetchDevices();
         } catch (err) {
-            console.error(err);
-            alert(err.message || 'Error adding device');
+            console.error('Add device error:', err);
+            // Show the actual server error, not the generic axios message
+            const msg = err?.response?.data?.error || err.message || 'Error adding device';
+            alert('Failed to add device: ' + msg);
         }
     };
 
