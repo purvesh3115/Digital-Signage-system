@@ -7,6 +7,7 @@ import Schedules from './pages/Schedules';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
 import Player from './pages/Player';
+import ABTesting from './pages/ABTesting';
 import './App.css';
 
 import SharePlayer from './pages/SharePlayer';
@@ -26,6 +27,7 @@ function App() {
           <Route path="devices" element={<DeviceManagement />} />
           <Route path="schedules" element={<Schedules />} />
           <Route path="analytics" element={<Analytics />} />
+          <Route path="ab-testing" element={<ABTesting />} />
           <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>

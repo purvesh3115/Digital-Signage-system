@@ -51,7 +51,11 @@ const RecentMedia = ({ items }) => {
                                 }}>{item.type}</span>
                             </td>
                             <td style={{ padding: '1rem 0', color: 'var(--text-secondary)' }}>{item.size || 'N/A'}</td>
-                            <td style={{ padding: '1rem 0', color: 'var(--text-secondary)' }}>{new Date(item.uploadDate).toLocaleDateString()}</td>
+                            <td style={{ padding: '1rem 0', color: 'var(--text-secondary)' }}>
+                                {item.uploadDate?.seconds 
+                                    ? new Date(item.uploadDate.seconds * 1000).toLocaleDateString()
+                                    : new Date(item.uploadDate).toLocaleDateString()}
+                            </td>
                             <td style={{ padding: '1rem 0' }}>
                                 <span style={{
                                     display: 'flex',

@@ -21,7 +21,7 @@ const DeviceHealth = ({ stats }) => {
                         </div>
                         <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>Healthy</span>
                     </div>
-                    <span style={{ fontWeight: 700, fontSize: '1.125rem' }}>{health.healthy}</span>
+                    <span style={{ fontWeight: 700, fontSize: '1.125rem', minWidth: '2rem', textAlign: 'right' }}>{health.healthy}</span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', borderRadius: '0.75rem', background: 'rgba(245, 158, 11, 0.05)', border: '1px solid rgba(245, 158, 11, 0.1)' }}>
@@ -31,7 +31,7 @@ const DeviceHealth = ({ stats }) => {
                         </div>
                         <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>Warning</span>
                     </div>
-                    <span style={{ fontWeight: 700, fontSize: '1.125rem' }}>{health.warning}</span>
+                    <span style={{ fontWeight: 700, fontSize: '1.125rem', minWidth: '2rem', textAlign: 'right' }}>{health.warning}</span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', borderRadius: '0.75rem', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.1)' }}>
@@ -41,7 +41,7 @@ const DeviceHealth = ({ stats }) => {
                         </div>
                         <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>Critical</span>
                     </div>
-                    <span style={{ fontWeight: 700, fontSize: '1.125rem' }}>{health.critical}</span>
+                    <span style={{ fontWeight: 700, fontSize: '1.125rem', minWidth: '2rem', textAlign: 'right' }}>{health.critical}</span>
                 </div>
             </div>
 

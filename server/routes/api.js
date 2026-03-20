@@ -314,7 +314,7 @@ router.get('/play', async (req, res) => {
             return now >= st && now <= et && matchesDevice;
         });
 
-        if (!activeSchedule) return res.json({ message: 'No content scheduled' });
+        if (!activeSchedule) return res.json({ message: 'No content scheduled', device });
 
         const mediaDoc = await mediaCol.doc(activeSchedule.mediaId).get();
         const media = mediaDoc.exists ? docToObj(mediaDoc) : null;
@@ -322,7 +322,7 @@ router.get('/play', async (req, res) => {
         // Update device status async
         devicesCol.doc(tokenData.deviceId).update({ status: 'online', lastPing: admin.firestore.FieldValue.serverTimestamp() });
 
-        res.json({ media, scheduleId: activeSchedule.id });
+        res.json({ media, scheduleId: activeSchedule.id, device });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

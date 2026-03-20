@@ -297,7 +297,17 @@ const Schedules = () => {
                                 <td style={{ padding: '1rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                         <Clock size={14} />
-                                        {new Date(sch.startTime).toLocaleString()} - {new Date(sch.endTime).toLocaleString()}
+                                        <span>
+                                            {sch.startTime?.seconds 
+                                                ? new Date(sch.startTime.seconds * 1000).toLocaleString() 
+                                                : new Date(sch.startTime).toLocaleString()}
+                                        </span>
+                                        <span style={{ margin: '0 4px', opacity: 0.5 }}>-</span>
+                                        <span>
+                                            {sch.endTime?.seconds 
+                                                ? new Date(sch.endTime.seconds * 1000).toLocaleString() 
+                                                : new Date(sch.endTime).toLocaleString()}
+                                        </span>
                                     </div>
                                 </td>
                                 <td style={{ padding: '1rem' }}>
@@ -308,11 +318,19 @@ const Schedules = () => {
                                         className="btn btn-secondary"
                                         style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', marginRight: '0.5rem' }}
                                         onClick={() => {
-                                            if (sch.targetType === 'group' && !selectedDevice) {
-                                                alert('Please select a device in Step 2 first to generate a link for this group schedule.');
+                                            let devId = sch.targetType === 'device' ? sch.targetId : null;
+                                            
+                                            // For groups, try to find a device from that group
+                                            if (!devId && sch.targetType === 'group') {
+                                                const groupDev = devices.find(d => d.groupName === sch.targetId || d.group_name === sch.targetId);
+                                                devId = groupDev?.id || selectedDevice;
+                                            }
+
+                                            if (!devId) {
+                                                alert('No device found to preview this group schedule. Please register a device first.');
                                                 return;
                                             }
-                                            generateLink(sch.targetType === 'device' ? sch.targetId : selectedDevice, sch.id);
+                                            generateLink(devId, sch.id);
                                         }}
                                     >
                                         <LinkIcon size={14} style={{ marginRight: '4px' }} /> Copy Link

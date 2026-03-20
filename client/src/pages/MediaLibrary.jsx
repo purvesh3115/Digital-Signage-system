@@ -132,7 +132,7 @@ const MediaLibrary = () => {
                             {item.type === 'image' ? (
                                 <img src={`http://localhost:5000/uploads/${item.filename}`} alt={item.filename} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
-                                <video src={`http://localhost:5000/uploads/${item.filename}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                <video src={`http://localhost:5000/uploads/${item.filename}`} preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             )}
 
                             <div style={{ position: 'absolute', top: '10px', left: '10px' }}>
@@ -170,7 +170,9 @@ const MediaLibrary = () => {
                                 </button>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                                <span>{new Date(item.uploadDate).toLocaleDateString()}</span>
+                                <span>{item.uploadDate?.seconds 
+                                    ? new Date(item.uploadDate.seconds * 1000).toLocaleDateString()
+                                    : new Date(item.uploadDate).toLocaleDateString()}</span>
                             </div>
                         </div>
                     </div>

@@ -9,6 +9,7 @@ const Player = () => {
     const [error, setError] = useState(null);
     const [errorType, setErrorType] = useState(null); // 'standby' or 'alert'
     const [lastScheduleId, setLastScheduleId] = useState(null);
+    const [device, setDevice] = useState(null);
     const videoRef = useRef(null);
 
     useEffect(() => {
@@ -24,10 +25,12 @@ const Player = () => {
                 if (response.data.message) {
                     setError('No content is currently scheduled for this time');
                     setErrorType('standby');
+                    if (response.data.device) setDevice(response.data.device);
                     if (media) setMedia(null);
                 } else if (response.data.media) {
                     setError(null);
                     setErrorType(null);
+                    if (response.data.device) setDevice(response.data.device);
                     if (response.data.scheduleId !== lastScheduleId) {
                         setMedia(response.data.media);
                         setLastScheduleId(response.data.scheduleId);

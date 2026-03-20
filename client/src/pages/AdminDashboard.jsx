@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import apiClient from '../apiClient';
 import { Monitor, ListVideo, HardDrive, Bell } from 'lucide-react';
 import StatCard from '../components/StatCard';
@@ -18,7 +19,7 @@ const AdminDashboard = () => {
         recentMedia: []
     });
 
-    const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -39,7 +40,7 @@ const AdminDashboard = () => {
                     totalDevices: totalDevices || 0,
                     onlineDevices: onlineDevices || 0,
                     activePlaylists: activePlaylists || 0,
-                    storageUsed: (recentMedia?.length || 0) * 5.2, // Still mocking storage for now
+                    storageUsed: statsData.storageUsed || 0,
                     totalStorage: 1024,
                     criticalAlerts: offlineDevices,
                     health: {
@@ -61,10 +62,14 @@ const AdminDashboard = () => {
         return () => clearInterval(interval);
     }, []);
 
-    if (loading) return <div style={{ padding: '2rem', color: 'var(--text-muted)' }}>Loading dashboard...</div>;
+    if (loading) return (
+        <div style={{ padding: '2rem', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="pulse-loader" style={{ fontSize: '1.25rem', color: 'var(--text-muted)' }}>Loading system data...</div>
+        </div>
+    );
 
     return (
-        <div style={{ maxWidth: '1600px', margin: '0 auto' }}>
+        <div className="fade-in" style={{ maxWidth: '1600px', margin: '0 auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <h1 style={{ fontSize: '1.875rem' }}>Dashboard Overview</h1>
                 <div style={{ display: 'flex', gap: '1rem' }}>
@@ -77,7 +82,7 @@ const AdminDashboard = () => {
                             borderRadius: '50%'
                         }} />
                     </div>
-                    <button className="btn" onClick={() => window.location.href = '/media'}>+ New Upload</button>
+                    <button className="btn" onClick={() => navigate('/media')}>+ New Upload</button>
                 </div>
             </div>
 

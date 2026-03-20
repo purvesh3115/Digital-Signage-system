@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import apiClient from '../apiClient';
-import { LayoutDashboard, Image, Monitor, Calendar, Settings, BarChart3, LogOut } from 'lucide-react';
+import { LayoutDashboard, Image, Monitor, Calendar, Settings, BarChart3, LogOut, FlaskConical } from 'lucide-react';
 
 const Sidebar = () => {
     const [systemName, setSystemName] = useState('SignageAdmin');
@@ -29,6 +29,7 @@ const Sidebar = () => {
         { icon: Monitor, label: 'Devices', path: '/devices' },
         { icon: Calendar, label: 'Schedules', path: '/schedules' },
         { icon: BarChart3, label: 'Analytics', path: '/analytics' },
+        { icon: FlaskConical, label: 'A/B Testing', path: '/ab-testing' },
         { icon: Settings, label: 'Settings', path: '/settings' },
     ];
 
