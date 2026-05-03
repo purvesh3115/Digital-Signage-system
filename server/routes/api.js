@@ -5,7 +5,7 @@ const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
 
-const { db, admin, storage } = require('../firebase');
+const { db, admin } = require('../firebase');
 
 // Firestore Collections
 const devicesCol = db.collection('devices');
@@ -18,16 +18,11 @@ const settingsCol = db.collection('settings');
 // Helper: convert Firestore doc to plain object with id
 const docToObj = (doc) => ({ id: doc.id, ...doc.data() });
 
-// Configure Multer for local uploads
-const multerStorage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/');
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
+// Configure Multer for Cloud Uploads (Memory Storage)
+const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
 });
-const upload = multer({ storage: multerStorage });
 
 // ============================================================
 // --- Device Management ---
@@ -133,24 +128,50 @@ router.put('/devices/:id/status-manual', async (req, res) => {
 // --- Media Upload System ---
 // ============================================================
 
-// Upload Media (saves file locally, stores metadata in Firestore)
+// Serving Media via Proxy (Local Storage Only)
+router.get('/uploads/:filename', async (req, res) => {
+    try {
+        const localFile = path.resolve(__dirname, '..', 'uploads', req.params.filename);
+        
+        if (!fs.existsSync(localFile)) {
+            return res.status(404).json({ error: 'File not found' });
+        }
+        
+        // Serve from local storage
+        res.sendFile(localFile);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Upload Media (saves to local storage, stores metadata in Firestore)
 router.post('/upload', upload.single('file'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
-        const type = req.file.mimetype.startsWith('image') ? 'image' : 'video';
+        const filename = Date.now() + path.extname(req.file.originalname);
+        
+        // Save to local uploads/ directory
+        const localPath = path.join(__dirname, '..', 'uploads', filename);
+        fs.writeFileSync(localPath, req.file.buffer);
+        console.log(`✅ Saved file locally: ${filename}`);
+
+        // Store metadata in Firestore
         const data = {
-            filename: req.file.filename,
+            filename: filename,
             originalname: req.file.originalname,
-            type: type,
+            type: req.file.mimetype.startsWith('image/') ? 'image' : 'video',
             size: req.file.size,
-            uploadDate: admin.firestore.FieldValue.serverTimestamp()
+            uploadDate: admin.firestore.FieldValue.serverTimestamp(),
+            isCloud: false
         };
-        const ref = await mediaCol.add(data);
-        const saved = await ref.get();
-        res.json(docToObj(saved));
+
+        const docRef = await mediaCol.add(data);
+        const saved = await docRef.get();
+        res.status(201).json(docToObj(saved));
+
     } catch (err) {
-        console.error('Upload error:', err.message);
+        console.error('❌ Upload error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
@@ -277,7 +298,9 @@ router.post('/generate-link', async (req, res) => {
             createdAt: admin.firestore.FieldValue.serverTimestamp()
         });
 
-        res.json({ link: `http://localhost:5173/play?token=${tokenString}` });
+        // Generate frontend URL (default to localhost:5173 for development)
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        res.json({ link: `${frontendUrl}/play?token=${tokenString}` });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -346,7 +369,10 @@ router.post('/generate-share-link', async (req, res) => {
             createdAt: admin.firestore.FieldValue.serverTimestamp()
         });
 
-        res.json({ link: `http://localhost:5173/share/${tokenString}`, limit: maxDevices });
+        // Use frontend URL (default to localhost:5173 for development)
+        // Generate frontend URL (default to localhost:5173 for development)
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        res.json({ link: `${frontendUrl}/share/${tokenString}`, limit: maxDevices });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -354,6 +380,33 @@ router.post('/generate-share-link', async (req, res) => {
 
 // Validate Share Token & Check Limit
 router.get('/share/validate/:token', async (req, res) => {
+    try {
+        const { token } = req.params;
+        const snap = await shareLinksCol.where('token', '==', token).limit(1).get();
+
+        if (snap.empty) return res.status(404).json({ error: 'Invalid Link' });
+
+        const shareDoc = snap.docs[0];
+        const shareData = shareDoc.data();
+
+        if (shareData.currentUses >= shareData.maxStatus) {
+            return res.status(403).json({ error: 'Connection Limit Reached for this Link' });
+        }
+
+        // Increment use count
+        await shareDoc.ref.update({ currentUses: admin.firestore.FieldValue.increment(1) });
+
+        const mediaDoc = await mediaCol.doc(shareData.mediaId).get();
+        const media = mediaDoc.exists ? docToObj(mediaDoc) : null;
+
+        res.json({ media });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Alternative endpoint - direct share/:token access for flexibility
+router.get('/share/:token', async (req, res) => {
     try {
         const { token } = req.params;
         const snap = await shareLinksCol.where('token', '==', token).limit(1).get();

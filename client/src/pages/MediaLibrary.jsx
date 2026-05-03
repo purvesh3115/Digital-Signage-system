@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import apiClient from '../apiClient';
+import apiClient, { BASE_URL } from '../apiClient';
 import { Search, Upload, Filter, MoreVertical, Play, Image as ImageIcon, Link as LinkIcon, X, Trash2 } from 'lucide-react';
 
 const MediaLibrary = () => {
@@ -130,9 +130,9 @@ const MediaLibrary = () => {
                     <div key={item.id} className="card" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                         <div style={{ position: 'relative', height: '180px', backgroundColor: '#000' }}>
                             {item.type === 'image' ? (
-                                <img src={`http://localhost:5000/uploads/${item.filename}`} alt={item.filename} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                <img src={`${BASE_URL.replace('/api', '/uploads')}/${item.filename}`} alt={item.filename} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
-                                <video src={`http://localhost:5000/uploads/${item.filename}`} preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                <video src={`${BASE_URL.replace('/api', '/uploads')}/${item.filename}`} preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             )}
 
                             <div style={{ position: 'absolute', top: '10px', left: '10px' }}>

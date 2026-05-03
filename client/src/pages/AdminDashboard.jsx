@@ -18,6 +18,7 @@ const AdminDashboard = () => {
         health: { healthy: 0, warning: 0, critical: 0 },
         recentMedia: []
     });
+    const [loading, setLoading] = useState(true);
 
     const navigate = useNavigate();
 

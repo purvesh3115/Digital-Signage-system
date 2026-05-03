@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import apiClient from '../apiClient';
+import apiClient, { BASE_URL } from '../apiClient';
 import {
     FlaskConical, Plus, Trash2, Trophy, Eye, Play,
     ChevronRight, Check, Monitor, Image as ImageIcon,
@@ -175,7 +175,7 @@ const CreateTestModal = ({ media, devices, onClose, onCreated }) => {
                                                     }}
                                                 >
                                                     {item.type === 'image'
-                                                        ? <img src={`http://localhost:5000/uploads/${item.filename}`} alt="" style={{ width: '48px', height: '36px', objectFit: 'cover', borderRadius: '4px' }} />
+                                                        ? <img src={`${BASE_URL.replace('/api', '/uploads')}/${item.filename}`} alt="" style={{ width: '48px', height: '36px', objectFit: 'cover', borderRadius: '4px' }} />
                                                         : <div style={{ width: '48px', height: '36px', backgroundColor: 'var(--bg-primary)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Play size={16} color="var(--accent-light)" /></div>
                                                     }
                                                     <span style={{ fontSize: '0.8rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.originalname || item.filename}</span>

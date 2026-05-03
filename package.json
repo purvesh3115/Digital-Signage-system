@@ -6,6 +6,9 @@
         "build": "cd server && npm install",
         "server": "cd server && node server.js",
         "client": "cd client && npm run dev",
-        "dev": "echo \"Please run 'npm run server' and 'npm run client' in separate terminals.\""
+        "dev": "concurrently \"npm run server\" \"npm run client\""
+    },
+    "devDependencies": {
+        "concurrently": "^9.2.1"
     }
-}
+}

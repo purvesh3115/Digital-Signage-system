@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import apiClient from '../apiClient';
+import apiClient, { BASE_URL } from '../apiClient';
 import { AlertOctagon, Loader2 } from 'lucide-react';
 
 const SharePlayer = () => {
@@ -12,7 +12,7 @@ const SharePlayer = () => {
     useEffect(() => {
         const validateLink = async () => {
             try {
-                const response = await apiClient.get(`/share/validate/${token}`);
+                const response = await apiClient.get(`/share/${token}`);
                 setMedia(response.data.media);
                 setLoading(false);
             } catch (err) {
@@ -85,7 +85,7 @@ const SharePlayer = () => {
 
             {media.type === 'image' ? (
                 <img
-                    src={`http://localhost:5000/uploads/${media.filename}`}
+                    src={`${BASE_URL.replace('/api', '/uploads')}/${media.filename}`}
                     alt="Shared Content"
                     style={{
                         maxHeight: '100%', maxWidth: '100%', objectFit: 'contain',
@@ -96,7 +96,7 @@ const SharePlayer = () => {
                 />
             ) : (
                 <video
-                    src={`http://localhost:5000/uploads/${media.filename}`}
+                    src={`${BASE_URL.replace('/api', '/uploads')}/${media.filename}`}
                     autoPlay
                     loop
                     controls

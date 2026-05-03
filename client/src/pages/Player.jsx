@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import apiClient from '../apiClient';
+import apiClient, { BASE_URL } from '../apiClient';
 import { useSearchParams } from 'react-router-dom';
 
 const Player = () => {
@@ -155,7 +155,7 @@ const Player = () => {
 
             {media.type === 'image' ? (
                 <img
-                    src={`http://localhost:5000/uploads/${media.filename}`}
+                    src={`${BASE_URL.replace('/api', '/uploads')}/${media.filename}`}
                     alt="Signage Content"
                     style={{
                         maxHeight: '100%', maxWidth: '100%', objectFit: 'contain',
@@ -167,7 +167,7 @@ const Player = () => {
             ) : (
                 <video
                     ref={videoRef}
-                    src={`http://localhost:5000/uploads/${media.filename}`}
+                    src={`${BASE_URL.replace('/api', '/uploads')}/${media.filename}`}
                     style={{
                         maxHeight: '100%', maxWidth: '100%', objectFit: 'contain',
                         position: 'relative', zIndex: 1,
