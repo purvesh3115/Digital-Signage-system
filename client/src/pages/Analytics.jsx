@@ -95,9 +95,9 @@ const Analytics = () => {
                     <Activity size={24} color="var(--accent-light)" />
                     <h2>Server Resource Usage</h2>
                 </div>
-                <div style={{ height: '200px', display: 'flex', alignItems: 'flex-end', gap: '1rem', paddingBottom: '2rem' }}>
+                <div style={{ height: '200px', display: 'flex', gap: '1rem', paddingBottom: '2rem' }}>
                     {data.systemLoad.map((item, i) => (
-                        <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                        <div key={i} style={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', gap: '0.5rem' }}>
                             <div style={{ width: '100%', height: `${item.load}%`, backgroundColor: 'var(--accent-light)', opacity: 0.6, borderRadius: '4px' }}></div>
                             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{item.time}</span>
                         </div>

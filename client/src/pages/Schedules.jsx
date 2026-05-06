@@ -2,6 +2,24 @@ import React, { useState, useEffect } from 'react';
 import apiClient, { BASE_URL } from '../apiClient';
 import { Calendar, Monitor, Image as ImageIcon, Play, Clock, Check, ChevronRight, Link as LinkIcon, Trash2 } from 'lucide-react';
 
+const formatDate = (dateObj) => {
+    if (!dateObj) return 'N/A';
+    if (dateObj._seconds) return new Date(dateObj._seconds * 1000).toLocaleString();
+    if (dateObj.seconds) return new Date(dateObj.seconds * 1000).toLocaleString();
+    const d = new Date(dateObj);
+    return isNaN(d.getTime()) ? 'Invalid Date' : d.toLocaleString();
+};
+
+const isExpired = (endTimeObj) => {
+    if (!endTimeObj) return false;
+    let timeMs = 0;
+    if (endTimeObj._seconds) timeMs = endTimeObj._seconds * 1000;
+    else if (endTimeObj.seconds) timeMs = endTimeObj.seconds * 1000;
+    else timeMs = new Date(endTimeObj).getTime();
+    
+    return Date.now() > timeMs;
+};
+
 const Schedules = () => {
     const [step, setStep] = useState(1);
     const [media, setMedia] = useState([]);
@@ -259,7 +277,7 @@ const Schedules = () => {
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                         {schedules.filter(s => s.targetId === (selectedDevice || selectedGroup)).map(s => (
                                             <div key={s.id} style={{ fontSize: '0.875rem', padding: '0.5rem', backgroundColor: 'var(--bg-primary)', borderRadius: '4px' }}>
-                                                <strong>{s.originalname || 'Unknown'}</strong> • {new Date(s.startTime?.seconds ? s.startTime.seconds * 1000 : s.startTime).toLocaleString()} to {new Date(s.endTime?.seconds ? s.endTime.seconds * 1000 : s.endTime).toLocaleString()}
+                                                <strong>{s.mediaId?.filename || 'Unknown Media'}</strong> • {formatDate(s.startTime)} to {formatDate(s.endTime)}
                                             </div>
                                         ))}
                                     </div>
@@ -318,25 +336,26 @@ const Schedules = () => {
                         {schedules.map(sch => (
                             <tr key={sch.id} style={{ borderBottom: '1px solid var(--divider-color)' }}>
                                 <td style={{ padding: '1rem', fontWeight: 500 }}>{sch.mediaId?.filename || 'Unknown Media'}</td>
-                                <td style={{ padding: '1rem' }}>{sch.targetId}</td>
+                                <td style={{ padding: '1rem' }}>
+                                    {sch.targetType === 'group' 
+                                        ? `Group: ${sch.targetId.toUpperCase()}`
+                                        : `Device: ${devices.find(d => d.id === sch.targetId)?.name || sch.targetId}`
+                                    }
+                                </td>
                                 <td style={{ padding: '1rem' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                         <Clock size={14} />
-                                        <span>
-                                            {sch.startTime?.seconds 
-                                                ? new Date(sch.startTime.seconds * 1000).toLocaleString() 
-                                                : new Date(sch.startTime).toLocaleString()}
-                                        </span>
+                                        <span>{formatDate(sch.startTime)}</span>
                                         <span style={{ margin: '0 4px', opacity: 0.5 }}>-</span>
-                                        <span>
-                                            {sch.endTime?.seconds 
-                                                ? new Date(sch.endTime.seconds * 1000).toLocaleString() 
-                                                : new Date(sch.endTime).toLocaleString()}
-                                        </span>
+                                        <span>{formatDate(sch.endTime)}</span>
                                     </div>
                                 </td>
                                 <td style={{ padding: '1rem' }}>
-                                    <span className="badge badge-online">Scheduled</span>
+                                    {isExpired(sch.endTime) ? (
+                                        <span className="badge badge-offline">Expired</span>
+                                    ) : (
+                                        <span className="badge badge-online" style={{ whiteSpace: 'nowrap' }}>Expires: {formatDate(sch.endTime)}</span>
+                                    )}
                                 </td>
                                 <td style={{ padding: '1rem', textAlign: 'right' }}>
                                     <button

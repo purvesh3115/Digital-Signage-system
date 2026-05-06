@@ -57,10 +57,6 @@ async function initDB() {
                     },
                     updatedAt: admin.firestore.FieldValue.serverTimestamp()
                 }
-            },
-            {
-                name: 'ab_tests',
-                seed: null
             }
         ];
 

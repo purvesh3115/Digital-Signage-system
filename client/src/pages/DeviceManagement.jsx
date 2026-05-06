@@ -112,7 +112,7 @@ const DeviceManagement = () => {
                                 await apiClient.post('/devices', {
                                     name: `Test Device ${Math.floor(Math.random() * 1000)}`,
                                     location: 'Test Lab',
-                                    ipAddress: '127.0.0.1',
+                                    ip_address: '127.0.0.1',
                                     status: 'online'
                                 });
                                 fetchDevices();
