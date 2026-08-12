@@ -3,7 +3,8 @@
     "version": "1.0.0",
     "scripts": {
         "start": "cd server && node server.js",
-        "build": "cd server && npm install",
+        "build": "npm run build:pages",
+        "build:server": "cd server && npm install",
         "build:pages": "cd client && npm run build",
         "server": "cd server && node server.js",
         "client": "cd client && npm run dev",
