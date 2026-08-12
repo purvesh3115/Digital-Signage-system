@@ -18,6 +18,53 @@ const settingsCol = db ? db.collection('settings') : null;
 // Helper: convert Firestore doc to plain object with id
 const docToObj = (doc) => ({ id: doc.id, ...doc.data() });
 
+const noFirebaseStats = () => ({
+    totalDevices: 0,
+    onlineDevices: 0,
+    activePlaylists: 0,
+    storageUsed: 0,
+    totalStorage: 1024,
+    criticalAlerts: 0,
+    health: { healthy: 0, warning: 0, critical: 0 },
+    recentMedia: []
+});
+
+const noFirebaseAnalytics = () => ({
+    statusDistribution: [
+        { label: 'Online', value: 0, color: 'var(--status-online)' },
+        { label: 'Offline', value: 0, color: 'var(--status-offline)' }
+    ],
+    mediaUsage: [],
+    systemLoad: [
+        { time: '12:00', load: 0 },
+        { time: '13:00', load: 0 },
+        { time: '14:00', load: 0 },
+        { time: '15:00', load: 0 },
+        { time: '16:00', load: 0 }
+    ]
+});
+
+const localMetadataPath = path.join(__dirname, '..', 'uploads', 'media-metadata.json');
+
+const readLocalMediaMetadata = () => {
+    try {
+        if (!fs.existsSync(localMetadataPath)) return [];
+        const raw = fs.readFileSync(localMetadataPath, 'utf8');
+        return JSON.parse(raw) || [];
+    } catch (err) {
+        console.error('Failed to read local media metadata:', err.message);
+        return [];
+    }
+};
+
+const writeLocalMediaMetadata = (items) => {
+    try {
+        fs.writeFileSync(localMetadataPath, JSON.stringify(items, null, 2));
+    } catch (err) {
+        console.error('Failed to write local media metadata:', err.message);
+    }
+};
+
 // Configure Multer for Local Storage (Disk Storage)
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -45,6 +92,22 @@ const upload = multer({
 // Add Device
 router.post('/devices', async (req, res) => {
     try {
+        if (!db || !devicesCol) {
+            const obj = {
+                id: `local-device-${Date.now()}`,
+                name: req.body.name || 'Local Device',
+                location: req.body.location || '',
+                ip_address: req.body.ip_address || '',
+                groupName: req.body.groupName || req.body.group_name || '',
+                group_name: req.body.groupName || req.body.group_name || '',
+                status: 'offline',
+                lastPing: null,
+                createdAt: new Date().toISOString(),
+                last_ping: null
+            };
+            return res.json(obj);
+        }
+
         const data = {
             name: req.body.name,
             location: req.body.location,
@@ -71,6 +134,10 @@ router.post('/devices', async (req, res) => {
 // List Devices
 router.get('/devices', async (req, res) => {
     try {
+        if (!db || !devicesCol) {
+            return res.json([]);
+        }
+
         const snapshot = await devicesCol.get();
         // Normalize: expose group_name for client and last_ping for heartbeat display
         const devices = snapshot.docs.map(doc => {
@@ -88,6 +155,9 @@ router.get('/devices', async (req, res) => {
 // Delete Device
 router.delete('/devices/:id', async (req, res) => {
     try {
+        if (!db || !devicesCol) {
+            return res.json({ message: 'Device deleted' });
+        }
         await devicesCol.doc(req.params.id).delete();
         res.json({ message: 'Device deleted' });
     } catch (err) {
@@ -98,6 +168,9 @@ router.delete('/devices/:id', async (req, res) => {
 // Batch Update Device Groups
 router.put('/devices/batch-group', async (req, res) => {
     try {
+        if (!db || !devicesCol) {
+            return res.json({ message: 'Devices updated' });
+        }
         const { deviceIds, groupName } = req.body;
         const batch = db.batch();
         deviceIds.forEach(id => {
@@ -113,6 +186,9 @@ router.put('/devices/batch-group', async (req, res) => {
 // Update Device Status (Heartbeat)
 router.put('/devices/:id/status', async (req, res) => {
     try {
+        if (!db || !devicesCol) {
+            return res.json({ id: req.params.id, status: 'online', lastPing: new Date().toISOString() });
+        }
         const ref = devicesCol.doc(req.params.id);
         await ref.update({
             status: 'online',
@@ -128,6 +204,9 @@ router.put('/devices/:id/status', async (req, res) => {
 // Manual Status Toggle
 router.put('/devices/:id/status-manual', async (req, res) => {
     try {
+        if (!db || !devicesCol) {
+            return res.json({ id: req.params.id, status: req.body.status || 'offline', lastPing: new Date().toISOString() });
+        }
         const { status } = req.body;
         const ref = devicesCol.doc(req.params.id);
         await ref.update({ status });
@@ -158,28 +237,38 @@ router.get('/uploads/:filename', async (req, res) => {
     }
 });
 
-// Upload Media (saves to local storage, stores metadata in Firestore)
+// Upload Media (saves to local storage, stores metadata in Firestore if available)
 router.post('/upload', upload.single('file'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
-        // req.file.filename is set by diskStorage
         const filename = req.file.filename;
         console.log(`✅ Saved file locally via DiskStorage: ${filename}`);
 
-        // Store metadata in Firestore
         const data = {
-            filename: filename,
+            filename,
             originalname: req.file.originalname,
             type: req.file.mimetype.startsWith('image/') ? 'image' : 'video',
             size: req.file.size,
-            uploadDate: admin.firestore.FieldValue.serverTimestamp(),
+            uploadDate: db ? admin.firestore.FieldValue.serverTimestamp() : new Date().toISOString(),
             isCloud: false
         };
 
-        const docRef = await mediaCol.add(data);
-        const saved = await docRef.get();
-        res.status(201).json(docToObj(saved));
+        if (db && mediaCol) {
+            const docRef = await mediaCol.add(data);
+            const saved = await docRef.get();
+            return res.status(201).json(docToObj(saved));
+        }
+
+        const items = readLocalMediaMetadata();
+        const savedItem = {
+            id: `local-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+            ...data,
+            uploadDate: { seconds: Math.floor(Date.now() / 1000) }
+        };
+        items.unshift(savedItem);
+        writeLocalMediaMetadata(items);
+        return res.status(201).json(savedItem);
 
     } catch (err) {
         console.error('❌ Upload error:', err.message);
@@ -190,10 +279,16 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 // List Media
 router.get('/media', async (req, res) => {
     try {
+        if (!db || !mediaCol) {
+            const media = readLocalMediaMetadata()
+                .sort((a, b) => (b.uploadDate?.seconds || 0) - (a.uploadDate?.seconds || 0));
+            return res.json(media);
+        }
+
         const snapshot = await mediaCol.get();
         const media = snapshot.docs.map(docToObj)
             .sort((a, b) => (b.uploadDate?.seconds || 0) - (a.uploadDate?.seconds || 0));
-        res.json(media);
+        return res.json(media);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -202,6 +297,16 @@ router.get('/media', async (req, res) => {
 // Delete Media
 router.delete('/media/:id', async (req, res) => {
     try {
+        if (!db || !mediaCol) {
+            const items = readLocalMediaMetadata().filter(item => item.id !== req.params.id);
+            writeLocalMediaMetadata(items);
+            const filePath = path.join(__dirname, '..', 'uploads', req.params.id.replace(/^local-[0-9]+-[a-z0-9]+-/, '') || '');
+            if (req.params.id && filePath && fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+            return res.json({ message: 'Media deleted' });
+        }
+
         const doc = await mediaCol.doc(req.params.id).get();
         if (doc.exists) {
             const filePath = path.join(__dirname, '..', 'uploads', doc.data().filename);
@@ -450,6 +555,10 @@ router.get('/share/:token', async (req, res) => {
 router.get('/stats', async (req, res) => {
     console.log('GET /api/stats hit');
     try {
+        if (!db) {
+            return res.json(noFirebaseStats());
+        }
+
         const [devSnap, mediaSnap, schedSnap] = await Promise.all([
             devicesCol.get(),
             mediaCol.get(),
@@ -497,6 +606,10 @@ router.get('/stats', async (req, res) => {
 
 router.get('/analytics', async (req, res) => {
     try {
+        if (!db) {
+            return res.json(noFirebaseAnalytics());
+        }
+
         const devSnap = await devicesCol.get();
         const devices = devSnap.docs.map(docToObj);
         const totalDevices = devices.length;
@@ -543,6 +656,10 @@ router.get('/analytics', async (req, res) => {
 
 router.get('/settings', async (req, res) => {
     try {
+        if (!db || !settingsCol) {
+            return res.json({ id: 'local-settings', config: {} });
+        }
+
         const snap = await settingsCol.limit(1).get();
         if (snap.empty) {
             const ref = await settingsCol.add({ config: {}, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
@@ -557,6 +674,10 @@ router.get('/settings', async (req, res) => {
 
 router.post('/settings', async (req, res) => {
     try {
+        if (!db || !settingsCol) {
+            return res.json({ id: 'local-settings', config: req.body });
+        }
+
         const snap = await settingsCol.limit(1).get();
         let ref;
         if (snap.empty) {
