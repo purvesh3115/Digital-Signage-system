@@ -328,6 +328,18 @@ router.delete('/media/:id', async (req, res) => {
 // Create Schedule (with conflict detection)
 router.post('/schedules', async (req, res) => {
     try {
+        if (!db || !schedulesCol) {
+            const schedule = {
+                id: `local-schedule-${Date.now()}`,
+                ...req.body,
+                active: true,
+                startTime: req.body.startTime,
+                endTime: req.body.endTime,
+                createdAt: new Date().toISOString()
+            };
+            return res.json(schedule);
+        }
+
         const { targetId, startTime, endTime } = req.body;
 
         // Conflict Detection
@@ -364,6 +376,10 @@ router.post('/schedules', async (req, res) => {
 // Get Schedules (with populated media)
 router.get('/schedules', async (req, res) => {
     try {
+        if (!db || !schedulesCol || !mediaCol) {
+            return res.json([]);
+        }
+
         const snapshot = await schedulesCol.get();
         const schedules = await Promise.all(snapshot.docs.map(async doc => {
             const data = docToObj(doc);
@@ -382,6 +398,9 @@ router.get('/schedules', async (req, res) => {
 // Delete Schedule
 router.delete('/schedules/:id', async (req, res) => {
     try {
+        if (!db || !schedulesCol) {
+            return res.json({ message: 'Schedule deleted' });
+        }
         await schedulesCol.doc(req.params.id).delete();
         res.json({ message: 'Schedule deleted' });
     } catch (err) {
@@ -396,6 +415,12 @@ router.delete('/schedules/:id', async (req, res) => {
 // Generate Token for Registered Devices
 router.post('/generate-link', async (req, res) => {
     try {
+        if (!db || !devicesCol || !schedulesCol || !tokensCol) {
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+            const tokenString = crypto.randomBytes(16).toString('hex');
+            return res.json({ link: `${frontendUrl}/play?token=${tokenString}` });
+        }
+
         const { deviceId, scheduleId } = req.body;
 
         const deviceDoc = await devicesCol.doc(deviceId).get();
@@ -427,6 +452,13 @@ router.get('/play', async (req, res) => {
     try {
         const { token } = req.query;
         if (!token) return res.status(400).json({ error: 'Token required' });
+
+        if (!db || !tokensCol || !devicesCol || !schedulesCol || !mediaCol) {
+            return res.json({
+                message: 'No content scheduled',
+                device: { id: 'demo-device', name: 'Demo Device' }
+            });
+        }
 
         const tokenSnap = await tokensCol.where('token', '==', token).limit(1).get();
         if (tokenSnap.empty) return res.status(403).json({ error: 'Invalid token' });
@@ -474,6 +506,12 @@ router.get('/play', async (req, res) => {
 // Generate Public Share Link
 router.post('/generate-share-link', async (req, res) => {
     try {
+        if (!db || !shareLinksCol) {
+            const tokenString = crypto.randomBytes(16).toString('hex');
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+            return res.json({ link: `${frontendUrl}/share/${tokenString}`, limit: req.body.maxDevices || 1 });
+        }
+
         const { mediaId, maxDevices } = req.body;
         const tokenString = crypto.randomBytes(16).toString('hex');
 
@@ -497,6 +535,10 @@ router.post('/generate-share-link', async (req, res) => {
 // Validate Share Token & Check Limit
 router.get('/share/validate/:token', async (req, res) => {
     try {
+        if (!db || !shareLinksCol || !mediaCol) {
+            return res.json({ media: null, message: 'Share link unavailable in demo mode' });
+        }
+
         const { token } = req.params;
         const snap = await shareLinksCol.where('token', '==', token).limit(1).get();
 
@@ -524,6 +566,10 @@ router.get('/share/validate/:token', async (req, res) => {
 // Alternative endpoint - direct share/:token access for flexibility
 router.get('/share/:token', async (req, res) => {
     try {
+        if (!db || !shareLinksCol || !mediaCol) {
+            return res.json({ media: null, message: 'Share link unavailable in demo mode' });
+        }
+
         const { token } = req.params;
         const snap = await shareLinksCol.where('token', '==', token).limit(1).get();
 
