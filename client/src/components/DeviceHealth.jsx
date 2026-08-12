@@ -4,9 +4,9 @@ import { CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
 const DeviceHealth = ({ stats }) => {
     // Mock stats if not provided
     const health = stats || {
-        healthy: 121,
-        warning: 6,
-        critical: 3
+        live: 121,
+        online: 6,
+        offline: 3
     };
 
     return (
@@ -19,9 +19,9 @@ const DeviceHealth = ({ stats }) => {
                         <div style={{ padding: '0.4rem', borderRadius: '0.5rem', background: 'rgba(16, 185, 129, 0.1)' }}>
                             <CheckCircle size={18} color="var(--status-online)" />
                         </div>
-                        <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>Healthy</span>
+                        <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>Live</span>
                     </div>
-                    <span style={{ fontWeight: 700, fontSize: '1.125rem', minWidth: '2rem', textAlign: 'right' }}>{health.healthy}</span>
+                    <span style={{ fontWeight: 700, fontSize: '1.125rem', minWidth: '2rem', textAlign: 'right' }}>{health.live}</span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', borderRadius: '0.75rem', background: 'rgba(245, 158, 11, 0.05)', border: '1px solid rgba(245, 158, 11, 0.1)' }}>
@@ -29,9 +29,9 @@ const DeviceHealth = ({ stats }) => {
                         <div style={{ padding: '0.4rem', borderRadius: '0.5rem', background: 'rgba(245, 158, 11, 0.1)' }}>
                             <AlertTriangle size={18} color="var(--status-warning)" />
                         </div>
-                        <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>Warning</span>
+                        <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>Online</span>
                     </div>
-                    <span style={{ fontWeight: 700, fontSize: '1.125rem', minWidth: '2rem', textAlign: 'right' }}>{health.warning}</span>
+                    <span style={{ fontWeight: 700, fontSize: '1.125rem', minWidth: '2rem', textAlign: 'right' }}>{health.online}</span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', borderRadius: '0.75rem', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.1)' }}>
@@ -39,9 +39,9 @@ const DeviceHealth = ({ stats }) => {
                         <div style={{ padding: '0.4rem', borderRadius: '0.5rem', background: 'rgba(239, 68, 68, 0.1)' }}>
                             <XCircle size={18} color="var(--status-offline)" />
                         </div>
-                        <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>Critical</span>
+                        <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>Offline</span>
                     </div>
-                    <span style={{ fontWeight: 700, fontSize: '1.125rem', minWidth: '2rem', textAlign: 'right' }}>{health.critical}</span>
+                    <span style={{ fontWeight: 700, fontSize: '1.125rem', minWidth: '2rem', textAlign: 'right' }}>{health.offline}</span>
                 </div>
             </div>
 

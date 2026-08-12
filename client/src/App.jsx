@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import AdminDashboard from './pages/AdminDashboard';
 import MediaLibrary from './pages/MediaLibrary';

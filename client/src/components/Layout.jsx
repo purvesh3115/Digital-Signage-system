@@ -10,7 +10,7 @@ const Layout = () => {
                 marginLeft: 'var(--sidebar-width)',
                 flex: 1,
                 padding: '2rem',
-                backgroundColor: 'var(--bg-primary)',
+                backgroundColor: 'transparent',
                 overflowY: 'auto'
             }}>
                 <Outlet />

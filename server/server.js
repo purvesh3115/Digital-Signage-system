@@ -23,11 +23,23 @@ if (!fs.existsSync(uploadsDir)) {
 }
 
 // Firebase Connection
-require('./firebase');
+const { isFirebaseConfigured } = require('./firebase');
 
 // Routes
 const apiRoutes = require('./routes/api');
-app.use('/api', apiRoutes);
+app.use('/api', (req, res, next) => {
+    if (!isFirebaseConfigured) {
+        return res.status(503).json({ error: 'Firebase is not configured. Set FIREBASE_* variables in the server .env file.' });
+    }
+    next();
+}, apiRoutes);
+
+// Serve the built frontend for non-API requests
+const clientBuildPath = path.join(__dirname, '..', 'docs');
+app.use(express.static(clientBuildPath));
+app.get(/^(?!\/api).*$/, (req, res) => {
+    res.sendFile(path.join(clientBuildPath, 'index.html'));
+});
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

@@ -35,8 +35,11 @@ const Sidebar = () => {
     return (
         <aside style={{
             width: 'var(--sidebar-width)',
-            backgroundColor: 'var(--bg-secondary)',
-            borderRight: '1px solid var(--border-color)',
+            backgroundColor: 'rgba(26, 29, 45, 0.7)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            borderRight: '1px solid rgba(255, 255, 255, 0.05)',
+            boxShadow: '4px 0 24px rgba(0, 0, 0, 0.2)',
             display: 'flex',
             flexDirection: 'column',
             height: '100vh',

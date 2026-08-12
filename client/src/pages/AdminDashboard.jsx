@@ -15,7 +15,7 @@ const AdminDashboard = () => {
         storageUsed: 0,
         totalStorage: 1024,
         criticalAlerts: 0,
-        health: { healthy: 0, warning: 0, critical: 0 },
+        health: { live: 0, online: 0, offline: 0 },
         recentMedia: []
     });
     const [loading, setLoading] = useState(true);
@@ -45,9 +45,9 @@ const AdminDashboard = () => {
                     totalStorage: 1024,
                     criticalAlerts: offlineDevices,
                     health: {
-                        healthy: onlineDevices || 0,
-                        warning: 0,
-                        critical: offlineDevices
+                        live: onlineDevices || 0,
+                        online: 0,
+                        offline: offlineDevices
                     },
                     recentMedia: recentMedia || []
                 });
@@ -107,15 +107,15 @@ const AdminDashboard = () => {
                 />
                 <StatCard
                     title="Storage Usage"
-                    value={`${stats.storageUsed}GB`}
+                    value={`${parseFloat(stats.storageUsed || 0).toFixed(1)}GB`}
                     subtext={`/ ${stats.totalStorage}TB Available`}
                     icon={HardDrive}
                     color="59, 130, 246" // Blue
                 />
                 <StatCard
                     title="Recent Alerts"
-                    value={`${stats.criticalAlerts} Critical`}
-                    subtext="View All Alerts"
+                    value={stats.criticalAlerts}
+                    subtext="Critical alerts requiring attention"
                     icon={Bell}
                     color="239, 68, 68" // Red
                 />

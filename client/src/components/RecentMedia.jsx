@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Play, Image as ImageIcon } from 'lucide-react';
 
 const RecentMedia = ({ items }) => {
@@ -9,7 +10,7 @@ const RecentMedia = ({ items }) => {
         <div className="card" style={{ width: '100%', marginTop: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <h2>Recently Added Media</h2>
-                <a href="/media" style={{ color: 'var(--accent-light)', fontSize: '0.875rem' }}>View Library</a>
+                <Link to="/media" style={{ color: 'var(--accent-light)', fontSize: '0.875rem', textDecoration: 'none' }}>View Library</Link>
             </div>
 
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>

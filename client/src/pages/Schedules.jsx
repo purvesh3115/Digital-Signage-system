@@ -269,23 +269,7 @@ const Schedules = () => {
                     <div>
                         <h2 style={{ marginBottom: '1rem' }}>Set Schedule Duration</h2>
                         
-                        {/* Show existing schedules for this device */}
-                        {(selectedDevice || selectedGroup) && (
-                            <div style={{ marginBottom: '2rem', padding: '1rem', backgroundColor: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                                <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Existing Schedules for This Target</h3>
-                                {schedules.filter(s => s.targetId === (selectedDevice || selectedGroup)).length > 0 ? (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                        {schedules.filter(s => s.targetId === (selectedDevice || selectedGroup)).map(s => (
-                                            <div key={s.id} style={{ fontSize: '0.875rem', padding: '0.5rem', backgroundColor: 'var(--bg-primary)', borderRadius: '4px' }}>
-                                                <strong>{s.mediaId?.filename || 'Unknown Media'}</strong> • {formatDate(s.startTime)} to {formatDate(s.endTime)}
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', margin: 0 }}>No schedules for this target yet.</p>
-                                )}
-                            </div>
-                        )}
+
                         
                         <div style={{ display: 'flex', gap: '2rem', maxWidth: '600px' }}>
                             <div className="w-full">

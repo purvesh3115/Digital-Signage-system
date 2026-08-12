@@ -8,20 +8,34 @@ const fs = require('fs');
 const { db, admin } = require('../firebase');
 
 // Firestore Collections
-const devicesCol = db.collection('devices');
-const mediaCol = db.collection('media');
-const schedulesCol = db.collection('schedules');
-const tokensCol = db.collection('tokens');
-const shareLinksCol = db.collection('share_links');
-const settingsCol = db.collection('settings');
+const devicesCol = db ? db.collection('devices') : null;
+const mediaCol = db ? db.collection('media') : null;
+const schedulesCol = db ? db.collection('schedules') : null;
+const tokensCol = db ? db.collection('tokens') : null;
+const shareLinksCol = db ? db.collection('share_links') : null;
+const settingsCol = db ? db.collection('settings') : null;
 
 // Helper: convert Firestore doc to plain object with id
 const docToObj = (doc) => ({ id: doc.id, ...doc.data() });
 
-// Configure Multer for Cloud Uploads (Memory Storage)
+// Configure Multer for Local Storage (Disk Storage)
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadsDir = path.join(__dirname, '..', 'uploads');
+        if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+        cb(null, uploadsDir);
+    },
+    filename: (req, file, cb) => {
+        const filename = Date.now() + path.extname(file.originalname);
+        cb(null, filename);
+    }
+});
+
 const upload = multer({ 
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+    storage: storage,
+    limits: { fileSize: 500 * 1024 * 1024 } // 500MB limit
 });
 
 // ============================================================
@@ -149,12 +163,9 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
-        const filename = Date.now() + path.extname(req.file.originalname);
-        
-        // Save to local uploads/ directory
-        const localPath = path.join(__dirname, '..', 'uploads', filename);
-        fs.writeFileSync(localPath, req.file.buffer);
-        console.log(`✅ Saved file locally: ${filename}`);
+        // req.file.filename is set by diskStorage
+        const filename = req.file.filename;
+        console.log(`✅ Saved file locally via DiskStorage: ${filename}`);
 
         // Store metadata in Firestore
         const data = {
